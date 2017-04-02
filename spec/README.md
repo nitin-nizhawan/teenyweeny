@@ -14,10 +14,35 @@ Space language is inspired from many of current crop of functional languages. On
 ```
 // file name Example.spc
 module Example {
-   auto factorial = (UInt64 d)=> case d = 1: 1                    // cases must be mutually exclusive
-                                 case d > 1 : d * factorial(d - 1)
+   auto factorial = (UInt64 d)=> case d = 1: 1                    
+                                 case d: d * factorial(d - 1)
 }
 
+```
+In above code it may appear that case statements are succeptible to the order of evaluation. For example, if second case were to be moved first then first case would never get any chance of execution. But a deeper analysis would show that this is only a syntactic sugar and that there exists an algorithm which can convert these cases into list of cases for which order would not matter e.g.
+```
+module Example {
+   auto factorial = (UInt64 d)=> case d = 1: 1                    
+                                 case !(d = 1): d * factorial(d - 1)
+}
+
+```
+Let us consider more involved example
+```
+// only case conditions are shown
+case f = 2 => ...
+case f < 10 && f > 0 => ...
+case f < 100 && f > -100 => ...
+case f => ...
+```
+In above list of cases order does matter, but that is only to represent case conditions as follows, but saves some typing
+. Algorithm to convert ordered cases to unordered one is to make sure other one do contain a negation of all the previous ones
+```
+// unorderd case conditions
+case f = 2 => ...
+case f < 10 && f > 0 && !( f=2 ) => ...
+case f < 100 && f > -100 && !(f < 10 && f > 0) && !(f = 2)=> ...
+case !(f < 100 && f > -100) && !(f < 10 && f > 0) && !(f = 2)
 ```
 
 ## Time
